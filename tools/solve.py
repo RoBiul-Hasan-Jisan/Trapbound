@@ -8,15 +8,15 @@ JS="""async ([i,maxR,capMs])=>{
  const sc=()=>G.scene.getScene('Game');
  function start(){const s=sc();s.p=null;s.won=false;s.dead=false;G.scene.start('Game',{i,fresh:true});
    for(let n=0;n<20&&!(s.p&&s.p.body);n++)step();}
- function run(P){start();for(let c=0;c<P.length;c++){const a=ACTS[P[c]];T.l=!!a[0];T.r=!!a[1];T.j=!!a[2];
-   for(let f=0;f<K;f++){step();const s=sc();if(s.won)return{w:1};if(s.dead)return{d:1}}}
+ function run(P,tr){start();for(let c=0;c<P.length;c++){const a=ACTS[P[c]];T.l=!!a[0];T.r=!!a[1];T.j=!!a[2];
+   for(let f=0;f<K;f++){step();const s=sc();if(s.won)return{w:1};if(s.dead)return{d:1}}if(tr){const b=sc().p.body;tr.push(c+':'+(b.x|0)+','+(b.y|0)+','+sc().gf)}}
    const b=sc().p.body;return{x:b.x,y:b.y,vy:b.velocity.y}}
  const end=rn()+capMs,vis=new Set();let P=[],d=0,R=0,maxd=0,bestP=[],far=-1;const nxt=[0];
  while(R<maxR&&rn()<end){
   if(d>=MAXD||nxt[d]>=6){if(d==0)break;d--;continue}
   const a=nxt[d]++;P[d]=a;const res=run(P.slice(0,d+1));R++;
-  if(res.w){const sol=P.slice(0,d+1);const v=run(sol);let tr=[];if(i==2){run(sol.slice(0,0));const q=sc();T.r=true;T.l=T.j=false;for(let n=0;n<230&&!q.won&&!q.dead;n++){step();if(n%10==0){const b=q.p.body;tr.push([n,b.x|0,b.y|0,q.ts[0].o.y|0,+q.ts[0].kill].join(':'))}}}
-   return{ok:!!v.w,tr:tr.join(' '),chunks:sol.length,replays:R,sol,ons:sc().ts.map(t=>+t.on).join(''),deaths:sc().registry.get('deaths')}}
+  if(res.w){const sol=P.slice(0,d+1);const trc=[];const v=run(sol,trc);let tr=[];if(i==2){run(sol.slice(0,0));const q=sc();T.r=true;T.l=T.j=false;for(let n=0;n<230&&!q.won&&!q.dead;n++){step();if(n%10==0){const b=q.p.body;tr.push([n,b.x|0,b.y|0,q.ts[0].o.y|0,+q.ts[0].kill].join(':'))}}}
+   return{ok:!!v.w,trace:trc.filter((_,k)=>k%10==0).join(' '),tr:tr.join(' '),chunks:sol.length,replays:R,sol,ons:sc().ts.map(t=>+t.on).join(''),deaths:sc().registry.get('deaths')}}
   if(res.d)continue;
   const key=d+':'+(res.x/12|0)+','+(res.y/12|0)+','+Math.round(res.vy/250);
   if(vis.has(key))continue;vis.add(key);d++;nxt[d]=0;maxd=Math.max(maxd,d);if(res.x>far){far=res.x;bestP=P.slice(0,d+1)};

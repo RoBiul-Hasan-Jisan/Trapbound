@@ -18,8 +18,8 @@ export class Menu extends Phaser.Scene{
       this.add.rectangle(x,y,w,48,c).setInteractive({useHandCursor:true}).on('pointerdown',fn);return txt(this,x,y,t,22)};
     btn(480,230,'PLAY',()=>this.go(Math.min(save.unlocked,LEVELS.length-1)),0xff4d6d,280);
     txt(this,480,286,'LEVEL SELECT',16,'#8a8aa0');
-    LEVELS.forEach((l,i)=>{const x=180+(i%6)*120,y=322+Math.floor(i/6)*56,ok=i<=save.unlocked;
-      const r=this.add.rectangle(x,y,84,46,ok?(save.done.includes(i)?0x1f6f4a:0x2a2a38):0x16161c);
+    LEVELS.forEach((l,i)=>{const x=75+(i%10)*90,y=322+Math.floor(i/10)*56,ok=i<=save.unlocked;
+      const r=this.add.rectangle(x,y,76,46,ok?(save.done.includes(i)?0x1f6f4a:0x2a2a38):0x16161c);
       if(ok)r.setInteractive({useHandCursor:true}).on('pointerdown',()=>this.go(i));
       txt(this,x,y,ok?String(i+1):'🔒',24,ok?'#fff':'#444')});
     const snd=btn(300,497,'',()=>{save.sound=!save.sound;store();snd.setText(lbl())},0x2a2a38,240);
@@ -72,7 +72,7 @@ export class Game extends Phaser.Scene{
     this.pb().setCollideWorldBounds(true).setMaxVelocity(260,900).setDragX(1500);
     this.physics.add.collider(this.p,this.plats);this.physics.add.collider(this.p,this.movers);
     const hud={fontFamily:'monospace',fontSize:'16px',color:'#8a8aa0'};
-    this.add.text(12,8,`${Math.floor(this.i/6)+1}-${this.i%6+1}  ${L.name}`,hud).setDepth(10).setColor(['#ff4d6d','#4da6ff','#b266ff'][Math.floor(this.i/6)]);
+    this.add.text(12,8,`${Math.floor(this.i/10)+1}-${this.i%10+1}  ${L.name}`,hud).setDepth(10).setColor(['#ff4d6d','#4da6ff','#b266ff'][Math.floor(this.i/10)]);
     this.add.text(940,8,'deaths '+this.registry.get('deaths'),hud).setOrigin(1,0).setDepth(10);
     this.add.text(12,30,'',hud);
     this.add.text(930,36,'II',{...hud,fontSize:'26px'}).setOrigin(1,0).setInteractive().on('pointerdown',()=>this.pause(!this.paused));

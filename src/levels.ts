@@ -2,13 +2,13 @@ export type R=[number,number,number,number];
 export type Trap={t:'spike'|'collapse'|'vanish'|'saw'|'block'|'mover'|'fake'|'rev'|'timed'|'wall'|'grav';r:R;trig?:R;to?:[number,number];v?:number;chain?:number[]};
 export type Level={name:string;spawn:[number,number];exit:[number,number];plats:R[];traps:Trap[]};
 const G:R=[0,480,960,60];
-export const LEVELS:Level[]=[
+const A:Level[]=[
  {name:'Easy Does It',spawn:[40,450],exit:[900,432],plats:[[0,480,400,60],[520,480,440,60]],
   traps:[{t:'spike',r:[620,456,40,24],trig:[570,300,40,180]}]},
  {name:'Mind the Gap',spawn:[40,450],exit:[900,432],plats:[[0,480,300,60],[420,480,540,60]],
   traps:[{t:'collapse',r:[300,480,120,60]}]},
  {name:'Heads Up',spawn:[40,450],exit:[900,432],plats:[G,[480,0,260,20]],
-  traps:[{t:'block',r:[600,20,60,60],trig:[500,200,50,280],to:[600,420]}]},
+  traps:[{t:'block',r:[600,20,60,50],trig:[500,200,50,280],to:[600,430]}]},
  {name:'Ferry & Saws',spawn:[40,450],exit:[900,432],plats:[[0,480,200,60],[760,480,200,60]],
   traps:[{t:'mover',r:[250,440,100,20],to:[660,440],v:100},{t:'saw',r:[380,310,40,40],to:[580,310],v:110}]},
  {name:'Not That Door',spawn:[40,450],exit:[900,432],plats:[G],
@@ -39,9 +39,42 @@ export const LEVELS:Level[]=[
   traps:[{t:'grav',r:[0,0,0,0],trig:[200,0,20,480],v:-1},{t:'grav',r:[0,0,0,0],trig:[380,0,20,480],v:1},{t:'grav',r:[0,0,0,0],trig:[560,0,20,480],v:-1},
    {t:'timed',r:[700,20,120,24],v:2400,to:[0,0]}]},
  {name:'Chain of Fools',spawn:[40,450],exit:[900,432],plats:[G,[380,0,140,20],[660,0,140,20]],
-  traps:[{t:'spike',r:[300,456,60,24],trig:[220,300,30,180],chain:[1]},{t:'block',r:[420,20,60,60],to:[420,420],chain:[2]},
-   {t:'spike',r:[560,456,60,24],chain:[3]},{t:'block',r:[700,20,60,60],to:[700,420]}]},
+  traps:[{t:'spike',r:[300,456,60,24],trig:[220,300,30,180],chain:[1]},{t:'block',r:[420,20,60,50],to:[420,430],chain:[2]},
+   {t:'spike',r:[560,456,60,24],chain:[3]},{t:'block',r:[700,20,60,50],to:[700,430]}]},
  {name:'Reality Glitch',spawn:[40,450],exit:[915,432],plats:[[0,480,260,60],[560,480,400,60],[0,0,960,20]],
   traps:[{t:'grav',r:[0,0,0,0],trig:[200,0,20,480],v:-1},{t:'timed',r:[450,20,100,24],v:2400,to:[0,0]},{t:'grav',r:[0,0,0,0],trig:[560,0,20,480],v:1},
    {t:'wall',r:[800,0,60,300],to:[800,170],v:130},{t:'fake',r:[870,432,32,48]}]},
 ];
+const C:R=[0,0,960,20],Z:R=[0,0,0,0];
+const N1:Level[]=[
+ {name:'Trust Fall',spawn:[40,450],exit:[900,432],plats:[[0,480,380,60],[540,480,420,60]],traps:[{t:'spike',r:[560,456,40,24],trig:[400,250,80,150]}]},
+ {name:'Stair Stepper',spawn:[40,450],exit:[905,432],plats:[[0,480,150,60],[190,430,100,20],[470,330,100,20],[750,430,100,20],[880,480,80,60]],
+  traps:[{t:'collapse',r:[330,380,100,20]},{t:'collapse',r:[610,380,100,20]}]},
+ {name:'Drop Zone',spawn:[40,450],exit:[900,432],plats:[G,[300,0,120,20],[580,0,120,20]],
+  traps:[{t:'block',r:[340,20,60,50],trig:[250,200,40,280],to:[340,430]},{t:'block',r:[620,20,60,50],trig:[530,200,40,280],to:[620,430]}]},
+ {name:'Everything Is Fine',spawn:[40,450],exit:[915,432],plats:[[0,480,300,60],[400,480,200,60],[700,480,260,60],[740,0,140,20]],
+  traps:[{t:'spike',r:[430,456,40,24],trig:[380,250,60,150]},{t:'block',r:[780,20,60,50],trig:[700,200,40,280],to:[780,430]}]},
+];
+const N2:Level[]=[
+ {name:'Ferry Hop',spawn:[40,450],exit:[905,432],plats:[[0,480,150,60],[430,440,100,20],[810,480,150,60]],
+  traps:[{t:'mover',r:[190,440,80,20],to:[330,440],v:90},{t:'mover',r:[550,440,80,20],to:[700,440],v:90}]},
+ {name:'Traffic Lights',spawn:[40,450],exit:[915,432],plats:[G],
+  traps:[{t:'timed',r:[220,456,180,24],v:2400,to:[0,0]},{t:'timed',r:[460,456,180,24],v:2400,to:[1200,0]},{t:'timed',r:[700,456,180,24],v:2400,to:[0,0]}]},
+ {name:'Reverse Psychology',spawn:[40,450],exit:[915,432],plats:[[0,480,200,60],[300,480,100,60],[500,480,100,60],[700,480,260,60]],
+  traps:[{t:'rev',r:Z,trig:[160,300,30,180]},{t:'saw',r:[420,340,40,40],to:[480,340],v:60},{t:'fake',r:[780,432,32,48]}]},
+ {name:'Ferry Crusher',spawn:[40,450],exit:[915,432],plats:[[0,480,150,60],[810,480,150,60]],
+  traps:[{t:'mover',r:[190,440,100,20],to:[640,440],v:100},{t:'wall',r:[450,0,50,240],to:[450,150],v:90},{t:'timed',r:[830,456,70,24],v:2400,to:[0,0]}]},
+];
+const N3:Level[]=[
+ {name:'Roof Run',spawn:[40,450],exit:[915,20],plats:[[0,480,200,60],C],
+  traps:[{t:'grav',r:Z,trig:[150,0,20,480],v:-1},{t:'timed',r:[350,20,160,24],v:2400,to:[0,0]},{t:'timed',r:[600,20,160,24],v:2400,to:[1200,0]}]},
+ {name:'Flip Flop',spawn:[40,450],exit:[915,20],plats:[G,C,[350,330,40,150],[600,20,40,150]],
+  traps:[{t:'grav',r:Z,trig:[250,0,20,480],v:-1},{t:'grav',r:Z,trig:[520,0,20,480],v:1},{t:'grav',r:Z,trig:[740,0,20,480],v:-1}]},
+ {name:'Chain Gang',spawn:[40,450],exit:[915,432],plats:[[0,480,560,60],[660,480,300,60],[400,0,140,20]],
+  traps:[{t:'spike',r:[300,456,60,24],trig:[230,300,30,180],chain:[1]},{t:'block',r:[440,20,60,50],to:[440,430],chain:[2]},
+   {t:'collapse',r:[560,480,100,60],chain:[3]},{t:'spike',r:[740,456,50,24]}]},
+ {name:'Glitch Finale',spawn:[40,450],exit:[915,432],plats:[[0,480,200,60],[560,480,400,60],C],
+  traps:[{t:'grav',r:Z,trig:[180,0,20,480],v:-1},{t:'timed',r:[300,20,100,24],v:2400,to:[0,0]},{t:'grav',r:Z,trig:[430,0,20,480],v:1},
+   {t:'spike',r:[700,456,50,24],trig:[620,300,30,180],chain:[4]},{t:'block',r:[800,20,60,50],to:[800,430]}]},
+];
+export const LEVELS:Level[]=[...A.slice(0,6),...N1,...A.slice(6,12),...N2,...A.slice(12),...N3];

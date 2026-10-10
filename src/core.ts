@@ -1,5 +1,5 @@
 export const touch={l:false,r:false,j:false};
-const KEY='trapbound.v1';
+const KEY='trapbound.v2';
 export type Save={unlocked:number;done:number[];sound:boolean};
 function load():Save{
   try{const s=JSON.parse(localStorage.getItem(KEY)||'');

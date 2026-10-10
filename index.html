@@ -1,0 +1,13 @@
+<!doctype html><html><head><meta charset="utf-8"><title>TRAPBOUND</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<style>
+html,body{margin:0;height:100%;background:#0e0e12;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+#game{position:fixed;inset:0}
+#tc{display:none;position:fixed;bottom:14px;left:14px;right:14px;justify-content:space-between;pointer-events:none}
+#tc div{display:flex;gap:12px}
+#tc button{pointer-events:auto;width:76px;height:76px;border-radius:50%;border:2px solid #ffffff55;background:#ffffff22;color:#fff;font-size:30px;touch-action:none}
+@media (pointer:coarse){#tc{display:flex}}
+</style></head><body>
+<div id="game"></div>
+<div id="tc"><div><button id="bl">◀</button><button id="br">▶</button></div><div><button id="bj">▲</button></div></div>
+<script type="module" src="/src/main.ts"></script></body></html>

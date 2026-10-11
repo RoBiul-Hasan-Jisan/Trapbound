@@ -8,7 +8,8 @@
   "build": "tsc --noEmit && vite build",
   "preview": "vite preview",
   "typecheck": "tsc --noEmit",
-  "solve": "python3 tools/solve.py"
+  "solve": "python3 tools/solve.py",
+  "test:mobile": "python3 tools/mobile_test.py"
  },
  "dependencies": {
   "phaser": "^3.80.1"

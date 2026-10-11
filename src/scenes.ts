@@ -6,35 +6,61 @@ const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const txt=(s:Phaser.Scene,x:number,y:number,t:string,sz=20,c='#e8e8f0')=>s.add.text(x,y,t,{fontFamily:'monospace',fontSize:sz+'px',color:c,align:'center'}).setOrigin(.5);
 const I=Phaser.Geom.Intersects.RectangleToRectangle;
 const Rc=(x:number,y:number,w:number,h:number)=>new Phaser.Geom.Rectangle(x,y,w,h);
+// Procedural 24x32 "man" icon, 4 poses (same size as the physics hitbox).
+function makeMan(s:Phaser.Scene){
+  if(s.textures.exists('man_idle'))return;
+  const poses:Record<string,number[][]>={
+    man_idle:[[12,12,6,20],[12,12,18,20],[12,21,8,31],[12,21,16,31]],
+    man_run1:[[12,12,5,17],[12,12,19,21],[12,21,4,29],[12,21,18,31]],
+    man_run2:[[12,12,19,17],[12,12,5,21],[12,21,20,29],[12,21,6,31]],
+    man_jump:[[12,12,4,6],[12,12,20,6],[12,21,6,28],[12,21,18,28]]};
+  for(const k in poses){const g=s.add.graphics();g.lineStyle(3,0xffe066).fillStyle(0xffe066);
+    g.fillCircle(12,6,5.5);g.lineBetween(12,11,12,21);poses[k].forEach(l=>g.lineBetween(l[0],l[1],l[2],l[3]));
+    g.fillStyle(0x0e0e12);g.fillCircle(14,5,1.2);g.generateTexture(k,24,32);g.destroy()}
+}
 
 export class Menu extends Phaser.Scene{
   constructor(){super('Menu')}
   create(){
     for(let i=0;i<5;i++){const r=this.add.rectangle(100+i*190,100+(i%2)*330,60,16,0x23232e);
       this.tweens.add({targets:r,y:r.y+(i%2?-60:60),yoyo:true,repeat:-1,duration:2500+i*300,ease:'Sine.inOut'})}
-    txt(this,480,90,'TRAPBOUND',72,'#ff4d6d');
-    txt(this,480,150,`Worlds 1–3 · ${save.done.length}/${LEVELS.length} cleared`,18,'#8a8aa0');
-    const btn=(x:number,y:number,t:string,fn:()=>void,c=0x2a2a38,w=220)=>{
-      this.add.rectangle(x,y,w,48,c).setInteractive({useHandCursor:true}).on('pointerdown',fn);return txt(this,x,y,t,22)};
-    btn(480,230,'PLAY',()=>this.go(Math.min(save.unlocked,LEVELS.length-1)),0xff4d6d,280);
-    txt(this,480,286,'LEVEL SELECT',16,'#8a8aa0');
-    LEVELS.forEach((l,i)=>{const x=75+(i%10)*90,y=322+Math.floor(i/10)*56,ok=i<=save.unlocked;
-      const r=this.add.rectangle(x,y,76,46,ok?(save.done.includes(i)?0x1f6f4a:0x2a2a38):0x16161c);
-      if(ok)r.setInteractive({useHandCursor:true}).on('pointerdown',()=>this.go(i));
-      txt(this,x,y,ok?String(i+1):'🔒',24,ok?'#fff':'#444')});
-    const snd=btn(300,497,'',()=>{save.sound=!save.sound;store();snd.setText(lbl())},0x2a2a38,240);
-    const lbl=()=>'SOUND: '+(save.sound?'ON':'OFF');snd.setText(lbl());
-    btn(660,497,'FULLSCREEN',()=>this.scale.toggleFullscreen(),0x2a2a38,240);
-    txt(this,480,527,'A/D or ←/→ move · W/↑/Space jump · R restart · Esc pause · Trust nothing.',14,'#8a8aa0');
+    txt(this,480,90,'TRAPBOUND',76,'#ff4d6d');
+    makeMan(this);const m=this.add.sprite(760,92,'man_idle').setScale(2.5);
+    this.tweens.add({targets:m,x:870,yoyo:true,repeat:-1,duration:1800,ease:'Sine.inOut',onYoyo:()=>m.setFlipX(true),onRepeat:()=>m.setFlipX(false)});
+    this.time.addEvent({delay:130,loop:true,callback:()=>m.setTexture(m.texture.key=='man_run1'?'man_run2':'man_run1')});
+    txt(this,480,150,`${save.done.length}/${LEVELS.length} levels cleared`,20,'#8a8aa0');
+    const btn=(x:number,y:number,t:string,fn:()=>void,c=0x2a2a38,w=320)=>{
+      this.add.rectangle(x,y,w,68,c).setInteractive({useHandCursor:true}).on('pointerdown',fn);return txt(this,x,y,t,26)};
+    btn(480,240,'PLAY',()=>this.scene.start('Game',{i:Math.min(save.unlocked,LEVELS.length-1),fresh:true}),0xff4d6d,380);
+    btn(480,330,'LEVELS',()=>this.scene.start('Levels'));
+    const lbl=()=>'SOUND: '+(save.sound?'ON':'OFF');
+    const snd=btn(310,425,'',()=>{save.sound=!save.sound;store();snd.setText(lbl())},0x2a2a38,300);snd.setText(lbl());
+    btn(650,425,'FULLSCREEN',()=>{this.scale.toggleFullscreen();try{Promise.resolve((screen.orientation as any).lock('landscape')).catch(()=>{})}catch{}},0x2a2a38,300);
+    txt(this,480,505,matchMedia('(pointer:coarse)').matches?'◀ ▶ move · ▲ jump · II pause':'A/D or ←/→ move · W/↑/Space jump · R restart · Esc pause',16,'#8a8aa0');
   }
-  go(i:number){this.scene.start('Game',{i,fresh:true})}
 }
-
+export class Levels extends Phaser.Scene{
+  w=0;constructor(){super('Levels')}
+  init(d:{w?:number}){this.w=d?.w??Math.min(2,Math.floor(Math.min(save.unlocked,LEVELS.length-1)/10))}
+  create(){
+    const w=this.w,N=['The Warm-Up','False Confidence','Reality Glitch'],col=[0xff4d6d,0x4da6ff,0xb266ff];
+    const hex='#'+col[w].toString(16).padStart(6,'0');
+    const done=[...Array(10).keys()].filter(k=>save.done.includes(w*10+k)).length;
+    txt(this,480,48,`WORLD ${w+1} — ${N[w]}`,34,hex);txt(this,480,92,`${done*10}% complete`,18,'#8a8aa0');
+    [-1,1].forEach(dw=>{const nw=w+dw;if(nw<0||nw>2)return;const x=480+dw*420;
+      this.add.rectangle(x,270,96,200,0x2a2a38).setInteractive().on('pointerdown',()=>this.scene.restart({w:nw}));txt(this,x,270,dw<0?'◀':'▶',40)});
+    for(let k=0;k<10;k++){const i=w*10+k,ok=i<=save.unlocked,d=save.done.includes(i),x=480+((k%5)-2)*150,y=205+Math.floor(k/5)*115;
+      const r=this.add.rectangle(x,y,134,96,ok?(d?0x1f6f4a:0x2a2a38):0x16161c).setStrokeStyle(ok?3:0,col[w]);
+      if(ok)r.setInteractive({useHandCursor:true}).on('pointerdown',()=>this.scene.start('Game',{i,fresh:true}));
+      txt(this,x,y,ok?String(k+1)+(d?' ✓':''):'🔒',36,ok?'#fff':'#444')}
+    this.add.rectangle(480,470,260,64,0x2a2a38).setInteractive().on('pointerdown',()=>this.scene.start('Menu'));txt(this,480,470,'BACK',26);
+  }
+}
 type S={d:Trap;o:any;on:boolean;kill:boolean;trig?:R};
 export class Game extends Phaser.Scene{
   i=0;clk=0;gf=1;dead=false;won=false;paused=false;rev=0;coy=0;buf=0;jp=false;
-  p!:Phaser.GameObjects.Rectangle;plats!:Phaser.Physics.Arcade.StaticGroup;ex!:Phaser.GameObjects.Rectangle;
-  pt!:Phaser.GameObjects.Text;dbg?:Phaser.GameObjects.Text;ts:S[]=[];movers:any[]=[];k:any;
+  p!:Phaser.GameObjects.Sprite;plats!:Phaser.Physics.Arcade.StaticGroup;ex!:Phaser.GameObjects.Rectangle;
+  pt!:Phaser.GameObjects.Container;dbg?:Phaser.GameObjects.Text;ts:S[]=[];movers:any[]=[];k:any;
   constructor(){super('Game')}
   pb(){return this.p.body as Phaser.Physics.Arcade.Body}
   door(x:number,y:number){return this.add.rectangle(x,y,32,48,0x66ffaa).setOrigin(0).setStrokeStyle(3,0x1a7a52)}
@@ -67,18 +93,25 @@ export class Game extends Phaser.Scene{
       if(DEBUG&&s.trig)this.add.rectangle(s.trig[0],s.trig[1],s.trig[2],s.trig[3]).setOrigin(0).setStrokeStyle(1,0x00ff88);
     }
     this.ex=this.door(L.exit[0],L.exit[1]);
-    this.p=this.add.rectangle(L.spawn[0],L.spawn[1],24,32,0xffe066);
+    makeMan(this);this.p=this.add.sprite(L.spawn[0],L.spawn[1],'man_idle');
     this.physics.add.existing(this.p);
     this.pb().setCollideWorldBounds(true).setMaxVelocity(260,900).setDragX(1500);
     this.physics.add.collider(this.p,this.plats);this.physics.add.collider(this.p,this.movers);
     const hud={fontFamily:'monospace',fontSize:'16px',color:'#8a8aa0'};
-    this.add.text(12,8,`${Math.floor(this.i/10)+1}-${this.i%10+1}  ${L.name}`,hud).setDepth(10).setColor(['#ff4d6d','#4da6ff','#b266ff'][Math.floor(this.i/10)]);
+    this.add.text(80,12,`${Math.floor(this.i/10)+1}-${this.i%10+1}  ${L.name}`,hud).setDepth(10).setColor(['#ff4d6d','#4da6ff','#b266ff'][Math.floor(this.i/10)]);
     this.add.text(940,8,'deaths '+this.registry.get('deaths'),hud).setOrigin(1,0).setDepth(10);
     this.add.text(12,30,'',hud);
-    this.add.text(930,36,'II',{...hud,fontSize:'26px'}).setOrigin(1,0).setInteractive().on('pointerdown',()=>this.pause(!this.paused));
-    this.pt=txt(this,480,270,'PAUSED\n\ntap / Esc: resume · R: restart · M: menu',26).setDepth(20).setVisible(false).setInteractive().on('pointerdown',()=>this.pause(false));
+    this.add.circle(36,36,28,0x2a2a38,.85).setDepth(10).setInteractive().on('pointerdown',()=>this.pause(!this.paused));txt(this,36,36,'II',24).setDepth(11);
+    const pc=this.add.container(0,0).setDepth(30).setVisible(false);this.pt=pc;
+    pc.add(this.add.rectangle(480,270,960,540,0x000000,.75).setInteractive());pc.add(txt(this,480,90,'PAUSED',44));
+    const sl=()=>'SOUND: '+(save.sound?'ON':'OFF');let st:Phaser.GameObjects.Text;
+    const items:[string,()=>void][]=[['RESUME',()=>this.pause(false)],['RESTART',()=>{this.pause(false);this.scene.restart({i:this.i})}],
+      [sl(),()=>{save.sound=!save.sound;store();st.setText(sl())}],['MENU',()=>{this.pause(false);this.scene.start('Menu')}]];
+    items.forEach(([t,f],k)=>{const y=175+k*85;pc.add(this.add.rectangle(480,y,340,68,0x2a2a38).setInteractive().on('pointerdown',f));
+      const tx=txt(this,480,y,t,28);pc.add(tx);if(k==2)st=tx});
     if(DEBUG)this.dbg=this.add.text(12,50,'',hud);
     this.k=this.input.keyboard!.addKeys('A,D,W,SPACE,LEFT,RIGHT,UP,R,ESC,M');
+    const hid=()=>{if(!this.dead&&!this.won&&!this.paused)this.pause(true)};this.game.events.on('hidden',hid);this.events.once('shutdown',()=>this.game.events.off('hidden',hid));
   }
   pause(on:boolean){this.paused=on;on?this.physics.pause():this.physics.resume();
     on?this.tweens.pauseAll():this.tweens.resumeAll();this.time.paused=on;this.pt.setVisible(on)}
@@ -87,7 +120,7 @@ export class Game extends Phaser.Scene{
     d.chain?.forEach((j,n)=>this.time.delayedCall(250*(n+1),()=>{const t=this.ts[j];if(t&&!t.on)this.fire(t)}));
     if(d.t=='spike'){s.kill=true;o.setAlpha(1);this.tweens.add({targets:o,y,duration:80})}
     else if(d.t=='block'){s.kill=true;this.tweens.add({targets:o,y:d.to![1],duration:220,ease:'Quad.In'})}
-    else if(d.t=='grav'){this.gf=d.v!;this.pb().setGravityY(this.gf<0?-3000:0);this.p.setFillStyle(this.gf<0?0x66ccff:0xffe066);
+    else if(d.t=='grav'){this.gf=d.v!;this.pb().setGravityY(this.gf<0?-3000:0);this.p.setFlipY(this.gf<0);
       this.msg(this.gf<0?'GRAVITY FLIPPED!':'gravity restored');if(!RM)this.cameras.main.flash(150,80,120,255)}
     else if(d.t=='rev'){this.rev=3000;this.msg('CONTROLS REVERSED!')}
     else if(d.t=='collapse'||d.t=='vanish'){
@@ -113,6 +146,8 @@ export class Game extends Phaser.Scene{
     this.buf=(jd&&!this.jp)?120:this.buf-dt;this.jp=jd;
     if(this.buf>0&&this.coy>0){b.setVelocityY(-560*this.gf);this.buf=this.coy=0;beep(420,.08,'square',260)}
     if(!jd&&b.velocity.y*this.gf<-220)b.setVelocityY(-220*this.gf);
+    this.p.setTexture(!gr?'man_jump':Math.abs(b.velocity.x)>40?((this.clk/110|0)%2?'man_run1':'man_run2'):'man_idle');
+    if(b.velocity.x<-10)this.p.setFlipX(true);else if(b.velocity.x>10)this.p.setFlipX(false);
     for(const m of this.movers){const v=Math.abs(m.d.v||100),mb=m.body as Phaser.Physics.Arcade.Body;
       if(m.x<=m.d.r[0])mb.setVelocityX(v);else if(m.x>=m.d.to[0])mb.setVelocityX(-v)}
     this.clk+=dt;const pr=Rc(b.x,b.y,b.width,b.height);
@@ -128,7 +163,7 @@ export class Game extends Phaser.Scene{
   die(){
     if(this.dead||this.won)return;this.dead=true;
     this.registry.set('deaths',this.registry.get('deaths')+1);
-    beep(160,.3,'sawtooth',-120);
+    beep(160,.3,'sawtooth',-120);navigator.vibrate?.(40);
     for(let n=0;n<10;n++){const q=this.add.rectangle(this.p.x,this.p.y,6,6,0xffe066);
       this.tweens.add({targets:q,x:q.x+Phaser.Math.Between(-60,60),y:q.y+Phaser.Math.Between(-60,40),alpha:0,duration:350,onComplete:()=>q.destroy()})}
     this.p.setVisible(false);this.pb().enable=false;
